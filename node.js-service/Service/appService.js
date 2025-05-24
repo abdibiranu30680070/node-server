@@ -1,6 +1,7 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const axios = require('axios');
+require('dotenv').config();
 
 /**
  * Creates a new user in the database.
@@ -56,30 +57,22 @@ async function getAllPatients() {
 /**
  * Creates a new patient record.
  * @param {Object} patientData - Patient's data.
- * @param {string} userId - ID of the user associated with this patient.
  * @returns {Promise<Object>} - The created patient record.
  */
 async function createPatient(patientData) {
-  console.log("Patient Data:", patientData);
-  
   if (!patientData || !patientData.userId) {
-    console.error("❌ Missing patient data or user ID.");
     throw new Error("Patient data and userId are required.");
   }
 
   try {
     return await prisma.patient.create({
-      data: {
-        ...patientData, // Spread patient data
-        userId: patientData.userId, // Ensure userId is passed correctly
-      },
+      data: patientData,
     });
   } catch (error) {
     console.error("❌ Error creating patient:", error.message);
     throw new Error("Failed to create patient.");
   }
 }
-
 
 /**
  * Calls the Python Flask API to predict diabetes.
@@ -92,21 +85,22 @@ async function callPythonService(patientData) {
   }
 
   try {
-    console.log("📤 Sending data to Python API:", patientData);
-
-<<<<<<< HEAD
-    const response = await axios.post('https://phyton-service-1.onrender.com/predict', patientData, {
-=======
-    const response = await axios.post('http://127.0.0.1:3002/predict', patientData, {
->>>>>>> 1845fcf (Initial commit)
-      headers: { 'Content-Type': 'application/json' }
+    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:3002/predict';
+    const response = await axios.post(pythonServiceUrl, patientData, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 10000 // 10 second timeout
     });
 
-    console.log("✅ Received response from Python API:", response.data);
     return response.data;
   } catch (error) {
-    console.error("❌ Error communicating with Python API:", error.response ? error.response.data : error.message);
-    throw new Error("Failed to get a response from Python service.");
+    console.error("❌ Error communicating with Python API:", error.message);
+    if (error.response) {
+      console.error("API Response Error:", {
+        status: error.response.status,
+        data: error.response.data
+      });
+    }
+    throw new Error("Prediction service unavailable. Please try again later.");
   }
 }
 
