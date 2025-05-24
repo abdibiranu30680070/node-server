@@ -1,12 +1,8 @@
 const userServices = require("../Service/userService");
 const auth = require("../middleware/auth");
-<<<<<<< HEAD
-=======
 const jwt = require("jsonwebtoken");
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-
->>>>>>> 1845fcf (Initial commit)
 
 const login = async (req, res) => {
   try {
@@ -42,8 +38,6 @@ const login = async (req, res) => {
       role: userRole
     });
 
-    console.log("Generated Token:", token); // Debugging
-
     if (!token) {
       return res.status(500).json({ error: "Token generation failed" });
     }
@@ -65,36 +59,9 @@ const login = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-<<<<<<< HEAD
 
 const register = async (req, res) => {
   try {
-    const { email, name, password, role } = req.body;
-    console.log("Received data:", { email, name, password, role });
-
-    if (!email || !name || !password) {
-      console.log("Validation failed");
-      return res.status(400).json({ error: "All fields are required" });
-    }
-
-    console.log("Checking if user exists...");
-    const existingUser = await userServices.checkIfFound(email);
-    if (existingUser) {
-      console.log("User already exists");
-      return res.status(409).json({ error: "User already exists" });
-    }
-
-    console.log("Proceeding to register new user...");
-    const userRole = ["superadmin", "admin", "moderator"].includes(role) ? role : "user";
-
-    const newUser = await userServices.registerUser(email, name, password, userRole);
-    console.log("New user registered:", newUser);
-
-=======
-const register = async (req, res) => {
-  try {
-    console.log("Register endpoint hit");  // Log to check if this is being triggered
-    
     const { email, name, password, role } = req.body;
 
     if (!email || !name || !password) {
@@ -109,18 +76,12 @@ const register = async (req, res) => {
     const userRole = ["superadmin", "admin", "moderator"].includes(role) ? role : "user";
 
     const newUser = await userServices.registerUser(email, name, password, userRole);
->>>>>>> 1845fcf (Initial commit)
     const token = auth.generateToken({
       userId: newUser.id,
       email: newUser.email,
       role: userRole
     });
 
-<<<<<<< HEAD
-    console.log("Token generated");
-
-=======
->>>>>>> 1845fcf (Initial commit)
     res.status(201).json({
       message: "Registration successful",
       user: {
@@ -133,20 +94,11 @@ const register = async (req, res) => {
     });
 
   } catch (error) {
-<<<<<<< HEAD
-    console.error("Registration error:", error); // Make sure this prints detailed info
-=======
     console.error("Registration error:", error);
->>>>>>> 1845fcf (Initial commit)
     res.status(500).json({ error: error.message || "Registration failed" });
   }
 };
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 1845fcf (Initial commit)
-// In authController.js - Add these new controllers
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -171,37 +123,27 @@ const resetPassword = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-<<<<<<< HEAD
 
-// Update module exports
-=======
 const getUser = async (req, res) => {
   const authHeader = req.headers.authorization;
 
-  // Step 1: Check for the Bearer token
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "No token provided" });
   }
 
   const token = authHeader.split(" ")[1];
-  console.log("Token received:", token); // Log the token for debugging purposes
 
   try {
-    // Step 2: Verify the token and decode it
-    const decoded = jwt.verify(token, process.env.TOKEN); // ✅ match here too
-
-    console.log("Decoded token:", decoded); 
-    // Step 3: Fetch the user's name (or other data) from the database
+    const decoded = jwt.verify(token, process.env.TOKEN);
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },  // Assuming `userId` is in the token
-      select: { name: true }  // Select only the name field
+      where: { id: decoded.userId },
+      select: { name: true }
     });
 
     if (!user || !user.name) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Step 4: Send the username back to the client
     res.json({ username: user.name });
 
   } catch (err) {
@@ -220,18 +162,17 @@ const submitFeedback = async (req, res) => {
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.TOKEN); // Verify token
-
+    const decoded = jwt.verify(token, process.env.TOKEN);
     const { message } = req.body;
+    
     if (!message) {
       return res.status(400).json({ error: "Feedback message is required" });
     }
 
-    // Create feedback in DB
     const feedback = await prisma.feedback.create({
       data: {
         message,
-        userId: decoded.userId, // use userId from token payload
+        userId: decoded.userId,
       },
     });
 
@@ -246,16 +187,11 @@ const submitFeedback = async (req, res) => {
   }
 };
 
->>>>>>> 1845fcf (Initial commit)
 module.exports = {
   register,
   login,
   forgotPassword,
-<<<<<<< HEAD
-  resetPassword
-=======
   resetPassword,
   getUser,
-  submitFeedback // ✅ ADD THIS
->>>>>>> 1845fcf (Initial commit)
+  submitFeedback
 };
