@@ -88,9 +88,6 @@ const deleteUser = async (req, res) => {
 };
 
 
-
->>>>>>> 1845fcf (Initial commit)
-// 🟢 Update user role
 const updateUserRole = async (req, res) => {
   const userId = req.params.id; // Keep it as a string
   const { newRole } = req.body;
@@ -174,8 +171,6 @@ const deletePatient = async (req, res) => {
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
-
-<<<<<<< HEAD
     await prisma.patient.delete({ where: { Id: patientId } });
     res.status(204).send();
   } catch (error) {
@@ -350,13 +345,6 @@ const fetchPredictionStats = async (req, res) => {
   }
 };
 
-
-module.exports = { 
-  getAllUsers, getAllPatients, deleteUser, updateUserRole, 
-  fetchSystemStats, fetchAuditLogs, deletePatient, 
-  exportCSV, exportExcel , fetchPredictionStats
-=======
-// 🟢 Get all feedbacks
 const getAllFeedback = async (req, res) => {
   try {
     const feedbacks = await prisma.feedback.findMany({
