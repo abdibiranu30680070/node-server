@@ -3,14 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
-<<<<<<< HEAD
-   "scripts": {
+  "scripts": {
     "start": "npx prisma migrate deploy && node server.js",
     "dev": "nodemon server.js",
-=======
-  "scripts": {
-    "start": "nodemon server.js",
->>>>>>> 1845fcf (Initial commit)
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,10 +16,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express-validator": "^3.0.2",
     "axios": "^1.4.0",
-<<<<<<< HEAD
     "bcrypt": "^5.1.1",
-=======
->>>>>>> 1845fcf (Initial commit)
     "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
@@ -35,10 +27,6 @@
     "express-validator": "^7.2.1",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
-<<<<<<< HEAD
-=======
-    "node.js-service": "file:",
->>>>>>> 1845fcf (Initial commit)
     "nodemailer": "^6.10.0",
     "nodemon": "^3.0.1",
     "prisma": "^6.4.1",
