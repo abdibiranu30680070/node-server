@@ -1,8 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { Parser } = require('json2csv');
 const ExcelJS = require('exceljs');
-const fs = require('fs');
-const path = require('path');
 
 const prisma = new PrismaClient();
 
@@ -10,7 +8,7 @@ const prisma = new PrismaClient();
 const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true }, // Exclude password
+      select: { id: true, name: true, email: true, role: true },
     });
     res.json(users);
   } catch (error) {
@@ -36,7 +34,7 @@ const getAllPatients = async (req, res) => {
         precentage: true,
         CreatedAt: true,
         UpdatedAt: true,
-        userId: true, // Make sure this matches the field in the Patient model
+        userId: true,
       },
     });
     res.json(patients);
@@ -45,18 +43,6 @@ const getAllPatients = async (req, res) => {
   }
 };
 
-// 🟢 Delete a user by ID (Admin only)
-const deleteUser = async (req, res) => {
-  const userId = req.params.id; // Keep it as a string
-  try {
-    await prisma.user.delete({ where: { id: userId } });
-    res.status(204).send(); // Successfully deleted
-  } catch (error) {
-    res.status(404).json({ error: 'User not found' });
-  }
-};
-
-=======
 const deleteUser = async (req, res) => {
   const userId = req.params.id;
 
@@ -66,30 +52,24 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // 1️⃣ Get the patient's ID related to this user using findFirst
     const patient = await prisma.patient.findFirst({ where: { userId } });
 
-    // 2️⃣ If the patient exists, delete related notifications first
     if (patient) {
       await prisma.notification.deleteMany({ where: { patientId: patient.Id } });
-
-      // 3️⃣ Delete the patient
       await prisma.patient.delete({ where: { Id: patient.Id } });
     }
 
-    // 4️⃣ Delete the user
     await prisma.user.delete({ where: { id: userId } });
 
-    res.status(204).send(); // No content
+    res.status(204).send();
   } catch (error) {
     console.error("Error deleting user:", error);
     res.status(500).json({ error: "Failed to delete user", details: error.message });
   }
 };
 
-
 const updateUserRole = async (req, res) => {
-  const userId = req.params.id; // Keep it as a string
+  const userId = req.params.id;
   const { newRole } = req.body;
 
   const validRoles = ['user', 'admin'];
@@ -108,17 +88,14 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-// 🟢 Fetch system stats
 const fetchSystemStats = async (req, res) => {
-  console.log("Fetching system stats...");
   try {
     const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 30));
 
-    // Run all queries in parallel
     const [totalUsers, activeUsers, activePatients, roleDistribution] = await Promise.all([
-      prisma.user.count(), // Total users
+      prisma.user.count(),
       prisma.user.findMany({
-        where: { patients: { some: {} } }, // Users with at least one patient
+        where: { patients: { some: {} } },
         select: { id: true },
       }),
       prisma.patient.count({ where: { CreatedAt: { gte: thirtyDaysAgo } } }),
@@ -128,9 +105,8 @@ const fetchSystemStats = async (req, res) => {
       }),
     ]);
 
-    // Get distinct user IDs manually
     const distinctUserIds = [...new Set(activeUsers.map(user => user.id))];
-    const activeUsersCount = distinctUserIds.length; // Count distinct user IDs
+    const activeUsersCount = distinctUserIds.length;
 
     res.json({
       totalUsers,
@@ -145,9 +121,7 @@ const fetchSystemStats = async (req, res) => {
   }
 };
 
-// 🟢 Fetch audit logs
 const fetchAuditLogs = async (req, res) => {
-  console.log("Received request for audit logs...");
   try {
     const logs = await prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' } });
     res.json(logs);
@@ -157,10 +131,8 @@ const fetchAuditLogs = async (req, res) => {
   }
 };
 
-// 🟢 Delete a patient by ID (Admin only)
 const deletePatient = async (req, res) => {
   const patientId = parseInt(req.params.id, 10);
-  console.log("Attempting to delete patient with Id:", patientId);
 
   if (isNaN(patientId)) {
     return res.status(400).json({ error: "Invalid patient ID" });
@@ -171,36 +143,21 @@ const deletePatient = async (req, res) => {
     if (!patient) {
       return res.status(404).json({ error: "Patient not found" });
     }
+
+    await prisma.notification.deleteMany({ where: { patientId: patientId } });
     await prisma.patient.delete({ where: { Id: patientId } });
+
     res.status(204).send();
-  } catch (error) {
-    console.error("Error deleting patient:", error);
-    res.status(500).json({ error: "Failed to delete patient" });
-  }
-};
-
-=======
-    // 🔥 First delete related notifications
-    await prisma.notification.deleteMany({
-      where: { patientId: patientId },
-    });
-
-    // 🗑 Now delete the patient
-    await prisma.patient.delete({ where: { Id: patientId } });
-
-    res.status(204).send(); // No Content
   } catch (error) {
     console.error("Error deleting patient:", error);
     res.status(500).json({ error: "Failed to delete patient", details: error.message });
   }
 };
 
-// 🟢 Shared filter builder and data fetcher
 const buildExportFilters = async (req) => {
   const { dateFrom, dateTo, prediction } = req.query;
   const filters = {};
 
-  // Date filtering
   if (dateFrom || dateTo) {
     filters.CreatedAt = {};
     if (dateFrom) {
@@ -215,7 +172,6 @@ const buildExportFilters = async (req) => {
     }
   }
 
-  // Prediction filtering
   if (prediction) {
     if (!['diabetic', 'non-diabetic'].includes(prediction)) {
       throw new Error('Invalid prediction filter value');
@@ -229,7 +185,6 @@ const buildExportFilters = async (req) => {
   return patients;
 };
 
-// 🟢 CSV Export
 const exportCSV = async (req, res) => {
   try {
     const patients = await buildExportFilters(req);
@@ -238,7 +193,7 @@ const exportCSV = async (req, res) => {
       'Id', 'name', 'Age', 'BMI', 'Insulin',
       'Glucose', 'BloodPressure', 'SkinThickness',
       'DiabetesPedigreeFunction', 'prediction',
-      'precentage', 'CreatedAt' // Keep original spelling
+      'precentage', 'CreatedAt'
     ];
 
     const parser = new Parser({ fields });
@@ -256,7 +211,6 @@ const exportCSV = async (req, res) => {
   }
 };
 
-// 🟢 Excel Export
 const exportExcel = async (req, res) => {
   try {
     const patients = await buildExportFilters(req);
@@ -275,7 +229,7 @@ const exportExcel = async (req, res) => {
       { header: 'Skin Thickness', key: 'SkinThickness', width: 15 },
       { header: 'Diabetes Pedigree', key: 'DiabetesPedigreeFunction', width: 15 },
       { header: 'Prediction', key: 'prediction', width: 20 },
-      { header: 'Precentage', key: 'precentage', width: 10 }, // Preserve spelling
+      { header: 'Precentage', key: 'precentage', width: 10 },
       { header: 'Created At', key: 'CreatedAt', width: 20 },
     ];
 
@@ -299,39 +253,35 @@ const exportExcel = async (req, res) => {
     res.status(status).json({ error: error.message });
   }
 };
-// 🟢 Fetch Prediction Statistics for Charts
+
 const fetchPredictionStats = async (req, res) => {
   try {
-      // Count predictions by type
       const diabeticCount = await prisma.patient.count({
-        where: { prediction: true }, // Assuming true means diabetic
+        where: { prediction: true },
       });
       const nonDiabeticCount = await prisma.patient.count({
-        where: { prediction: false }, // Assuming false means non-diabetic
+        where: { prediction: false },
       });
       
-      // Count predictions over time (last 7 days)
       const pastWeek = new Date();
       pastWeek.setDate(pastWeek.getDate() - 7);
 
       const weeklyPredictions = await prisma.patient.groupBy({
-          by: ['CreatedAt'], // Ensure 'CreatedAt' is the correct field name
+          by: ['CreatedAt'],
           where: { 
               CreatedAt: { 
-                  gte: pastWeek // Filter by the past 7 days
+                  gte: pastWeek
               }
           },
-          _count: { Id: true }, // Ensure 'Id' is the correct field to count
-          orderBy: { CreatedAt: 'asc' } // Order by date ascending
+          _count: { Id: true },
+          orderBy: { CreatedAt: 'asc' }
       });
 
-      // Format data for frontend
       const formattedWeeklyPredictions = weeklyPredictions.map(entry => ({
-          date: entry.CreatedAt.toISOString().split('T')[0], // Format as YYYY-MM-DD
+          date: entry.CreatedAt.toISOString().split('T')[0],
           count: entry._count.Id
       }));
 
-      // Return the stats
       res.json({
           totalPredictions: diabeticCount + nonDiabeticCount,
           diabetic: diabeticCount,
@@ -353,10 +303,10 @@ const getAllFeedback = async (req, res) => {
         message: true,
         createdAt: true,
         user: {
-          select: { id: true, name: true, email: true } // optional: include user info
+          select: { id: true, name: true, email: true }
         }
       },
-      orderBy: { createdAt: 'desc' } // newest first
+      orderBy: { createdAt: 'desc' }
     });
     res.json(feedbacks);
   } catch (error) {
