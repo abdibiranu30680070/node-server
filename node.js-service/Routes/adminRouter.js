@@ -1,13 +1,20 @@
 const express = require('express');
 const router = express.Router();
+
 const { 
-    getAllUsers, deleteUser, updateUserRole, fetchSystemStats, fetchAuditLogs, 
-<<<<<<< HEAD
-    getAllPatients, deletePatient, exportCSV, exportExcel , fetchPredictionStats
-=======
-    getAllPatients, deletePatient, exportCSV, exportExcel , fetchPredictionStats , getAllFeedback
->>>>>>> 1845fcf (Initial commit)
+    getAllUsers,
+    deleteUser,
+    updateUserRole,
+    fetchSystemStats,
+    fetchAuditLogs,
+    getAllPatients,
+    deletePatient,
+    exportCSV,
+    exportExcel,
+    fetchPredictionStats,
+    getAllFeedback
 } = require('../Controller/adminController');
+
 const { authenticate, isAdmin } = require('../middleware/auth');
 
 // 🟢 Admin User Management Routes
@@ -26,12 +33,11 @@ router.delete("/deletePatient/:id", authenticate, isAdmin, deletePatient);
 // 🟢 Export Reports (CSV & Excel)
 router.get('/export/csv', authenticate, isAdmin, exportCSV);
 router.get('/export/excel', authenticate, isAdmin, exportExcel);
+
 // 🟢 Fetch chart data
 router.get('/prediction-stats', authenticate, isAdmin, fetchPredictionStats);
-<<<<<<< HEAD
 
-=======
-router.get('/feedbacks',authenticate, isAdmin,getAllFeedback);
->>>>>>> 1845fcf (Initial commit)
+// 🟢 Feedback Routes
+router.get('/feedbacks', authenticate, isAdmin, getAllFeedback);
 
 module.exports = router;
