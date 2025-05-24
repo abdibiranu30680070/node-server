@@ -1,28 +1,16 @@
-<<<<<<< HEAD
-=======
-// router.js
->>>>>>> 1845fcf (Initial commit)
-const express = require('express'); 
-const userController = require('../Controller/userController'); 
-const router = express.Router(); 
+// userRouter.js
+const express = require('express');
+const userController = require('../Controller/userController');
+const router = express.Router();
 
-<<<<<<< HEAD
+// Authentication routes
 router.post("/login", userController.login);
 router.post("/register", userController.register);
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
 
-module.exports = router; 
-=======
-// Define routes
-router.get("/user", userController.getUser);  // Route calling the getUser controller function
-
-// Authentication routes
-router.post("/login", userController.login);
-router.post("/register", userController.register);  
-router.post('/forgot-password', userController.forgotPassword);
-router.post('/reset-password', userController.resetPassword);
+// User routes
+router.get("/user", userController.getUser);
 router.post("/feedback", userController.submitFeedback);
 
 module.exports = router;
->>>>>>> 1845fcf (Initial commit)
