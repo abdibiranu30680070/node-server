@@ -45,7 +45,6 @@ const getAllPatients = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 // 🟢 Delete a user by ID (Admin only)
 const deleteUser = async (req, res) => {
   const userId = req.params.id; // Keep it as a string
@@ -201,8 +200,6 @@ const deletePatient = async (req, res) => {
   }
 };
 
-
->>>>>>> 1845fcf (Initial commit)
 // 🟢 Shared filter builder and data fetcher
 const buildExportFilters = async (req) => {
   const { dateFrom, dateTo, prediction } = req.query;
@@ -354,8 +351,6 @@ const fetchPredictionStats = async (req, res) => {
 };
 
 
-
-<<<<<<< HEAD
 module.exports = { 
   getAllUsers, getAllPatients, deleteUser, updateUserRole, 
   fetchSystemStats, fetchAuditLogs, deletePatient, 
@@ -386,6 +381,5 @@ module.exports = {
   getAllUsers, getAllPatients, deleteUser, updateUserRole, 
   fetchSystemStats, fetchAuditLogs, deletePatient, 
   exportCSV, exportExcel, fetchPredictionStats,
-  getAllFeedback // ← add this
->>>>>>> 1845fcf (Initial commit)
+  getAllFeedback 
 };
