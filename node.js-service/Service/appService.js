@@ -85,7 +85,7 @@ async function callPythonService(patientData) {
   }
 
   try {
-    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:3002/predict';
+    const pythonServiceUrl = process.env.PYTHON_SERVICE_URL || 'https://phyton-service-1.onrender.com/predict';
     const response = await axios.post(pythonServiceUrl, patientData, {
       headers: { 'Content-Type': 'application/json' },
       timeout: 10000 // 10 second timeout
