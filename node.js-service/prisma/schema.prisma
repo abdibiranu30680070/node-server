@@ -1,9 +1,5 @@
 datasource db {
-<<<<<<< HEAD
-  provider = "postgresql" // or "mysql" depending on your DB
-=======
   provider = "postgresql"
->>>>>>> 1845fcf (Initial commit)
   url      = env("DATABASE_URL")
 }
 
@@ -17,19 +13,6 @@ enum UserRole {
 }
 
 model User {
-<<<<<<< HEAD
-  id               String    @id @default(uuid())
-  email            String    @unique
-  name             String
-  password         String
-  role             UserRole  @default(user) // Use enum instead of string
-  resetToken       String?   // Add resetToken as an optional field
-  resetTokenExpiry DateTime? // Add resetTokenExpiry as an optional field
-
-  // Inverse relations
-  auditLogs        AuditLog[]  
-  patients         Patient[]   
-=======
   id               String       @id @default(uuid())
   email            String       @unique
   name             String
@@ -37,27 +20,19 @@ model User {
   role             UserRole     @default(user)
   resetToken       String?
   resetTokenExpiry DateTime?
-
   auditLogs        AuditLog[]
   patients         Patient[]
-  feedbacks        Feedback[]   // ✅ Added inverse relation to feedback
->>>>>>> 1845fcf (Initial commit)
+  feedbacks        Feedback[]
 }
 
 model AuditLog {
   id          String   @id @default(uuid())
   action      String
-<<<<<<< HEAD
-  actionType  String   // Example: 'create', 'update', 'delete'
-  details     String?  // Optional: Description of the action
-=======
   actionType  String
   details     String?
->>>>>>> 1845fcf (Initial commit)
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
   user        User     @relation(fields: [userId], references: [id])
 }
 
@@ -74,22 +49,13 @@ model Patient {
   DiabetesPedigreeFunction  Float
   prediction                Boolean
   precentage                Float    @default(0.0)
-<<<<<<< HEAD
-  riskLevel                 String   @default("Low") // New field for risk level (e.g., Low, Medium, High)
-  recommendation            String?  // New optional field for recommendations
-  CreatedAt                 DateTime @default(now())
-  UpdatedAt                 DateTime @updatedAt
-  userId                    String   // Make the userId field non-nullable
-  user                      User     @relation(fields: [userId], references: [id])
-=======
   riskLevel                 String   @default("Low")
   recommendation            String?
   CreatedAt                 DateTime @default(now())
   UpdatedAt                 DateTime @updatedAt
   userId                    String
   user                      User     @relation(fields: [userId], references: [id])
-
-  notifications             Notification[] @relation("PatientNotifications")
+  notifications             Notification[]
 }
 
 model Notification {
@@ -98,16 +64,13 @@ model Notification {
   message     String
   date        DateTime @default(now())
   isRead      Boolean  @default(false)
-
   patient     Patient  @relation("PatientNotifications", fields: [patientId], references: [Id])
 }
 
-model Feedback {             // ✅ NEW MODEL ADDED
+model Feedback {
   id        Int      @id @default(autoincrement())
   message   String
   userId    String
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id])
->>>>>>> 1845fcf (Initial commit)
 }
