@@ -62,7 +62,7 @@ app.use((req, res) => {
   res.status(404).send('Not Found');
 });
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 10000; // Use Render's port first
 app.listen(port, '0.0.0.0', () => { // Listen on all network interfaces
   console.log(`Server started successfully on port ${port}`);
   console.log(`Allowed CORS origins: ${allowedOrigins.join(', ')}`);
