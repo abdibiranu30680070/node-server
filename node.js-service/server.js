@@ -75,7 +75,14 @@ app.get('/', (req, res) => {
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
-
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    database: 'connected'
+  });
+});
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
