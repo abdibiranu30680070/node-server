@@ -1,45 +1,28 @@
-require('dotenv').config(); // Load environment variables first
 const express = require('express');
+const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
 
-// Initialize Express app
-const app = express();
-
-// Enhanced security middleware
-app.use(helmet());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
-});
-app.use(limiter);
-
-// Configure CORS
+// Enhanced CORS configuration
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://your-frontend-url.onrender.com',
-  'https://fmt-viw.onrender.com',
-  'https://render.com'
+  'http://localhost:3000', // Local development
+  'https://your-frontend-url.onrender.com', // Your live frontend
+  'https://fmt-viw.onrender.com' // Example - replace with your actual frontend URL
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified origin.';
+      return callback(new Error(msg), false);
     }
+    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Handle preflight requests
@@ -49,96 +32,38 @@ app.options('*', cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
-// Database connection middleware
-app.use(async (req, res, next) => {
-  try {
-    await prisma.$connect();
-    next();
-  } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ error: 'Database connection failed' });
-  }
-});
-
-// Import routes
-const adminRouter = require('./Routes/adminRouter');
-const userRouter = require('./Routes/userRouter');
-const appRouter = require('./Routes/appRouter');
-
-// Mount routes
-app.use('/admin', adminRouter);
-app.use('/api/users', userRouter);
-app.use('/api', appRouter);
-
-// Health check endpoints
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    database: 'connected'
-  });
-});
-
-app.get('/', (req, res) => {
-  res.json({
-    message: 'API Server is running',
-    documentation: 'https://your-docs-url.com',
-    healthCheck: '/health',
-    version: process.env.npm_package_version
-  });
-});
-
-// Error handling middleware
+// Improved error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+  res.status(500).send('Something broke!');
+});
+
+// Import routers
+const adminRouter = require('./Routes/adminRouter.js');
+const userRouter = require('./Routes/userRouter.js');
+const appRouter = require('./Routes/appRouter.js');
+
+// Use routers with proper error handling
+app.use('/admin', adminRouter);
+app.use('/api/users', userRouter); // More specific path recommended
+app.use('/api', appRouter); // More specific path recommended
+
+// Enhanced health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
   });
 });
 
-// 404 handler
+// Handle 404
 app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
+  res.status(404).send('Not Found');
 });
 
-// Server setup
-const port = process.env.PORT || 10000;
-const server = app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
-  console.log(`Listening on port ${port}`);
-  console.log(`Allowed origins: ${allowedOrigins.join(', ')}`);
-});
-
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  await prisma.$disconnect();
-  server.close(() => {
-    console.log('Process terminated');
-    process.exit(0);
-  });
-});
-
-process.on('SIGINT', async () => {
-  console.log('SIGINT received. Shutting down gracefully...');
-  await prisma.$disconnect();
-  server.close(() => {
-    console.log('Process terminated');
-    process.exit(0);
-  });
-});
-
-// Unhandled rejection/exception handlers
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  process.exit(1);
-});
-
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-  process.exit(1);
-});
+const port = process.env.PORT || 10000; // Use Render's port first
+app.listen(port, '0.0.0.0', () => { // Listen on all network interfaces
+  console.log(`Server started successfully on port ${port}`);
+  console.log(`Allowed CORS origins: ${allowedOrigins.join(', ')}`);
+});  
